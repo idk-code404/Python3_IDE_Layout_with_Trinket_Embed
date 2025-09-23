@@ -1,133 +1,136 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Python Trinket 3 Embed</title>
+  <meta charset="UTF-8">
+  <title>Trinket with AI Assistant</title>
   <style>
-    :root {
-      --bg-color: #f5f5f5;
-      --text-color: #222;
-      --card-bg: #fff;
-      --link-color: #007acc;
-    }
-    body.dark {
-      --bg-color: #1e1e1e;
-      --text-color: #eee;
-      --card-bg: #2d2d2d;
-      --link-color: #4dabf7;
-    }
     body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: var(--bg-color);
-      color: var(--text-color);
-      transition: background 0.3s, color 0.3s;
-    }
-    header {
-      background: #2d2d2d;
-      color: #fff;
-      padding: 1rem;
-      text-align: center;
+      background: #0a0e14;
+      color: #e6e6e6;
+      font-family: monospace;
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
       align-items: center;
+      padding: 20px;
     }
-    header h1 {
-      margin: 0;
-      font-size: 1.6rem;
-    }
-    button.toggle-btn {
-      background: #444;
-      border: none;
-      color: #fff;
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      transition: background 0.3s;
-    }
-    button.toggle-btn:hover {
-      background: #666;
-    }
-    main {
+    .window {
+      background: #1f2430;
+      border-radius: 12px;
+      width: 80%;
       max-width: 900px;
-      margin: 2rem auto;
-      background: var(--card-bg);
-      padding: 1.5rem;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(0,0,0,0.6);
+      margin-bottom: 20px;
+    }
+    .titlebar {
+      background: #191d26;
+      padding: 8px;
+      display: flex;
+      gap: 8px;
+    }
+    .dot {
+      height: 12px; width: 12px; border-radius: 50%;
+    }
+    .red { background: #ff5f56; }
+    .yellow { background: #ffbd2e; }
+    .green { background: #27c93f; }
+
+    iframe { width: 100%; height: 400px; border: none; }
+
+    .assistant {
+      background: #1f2430;
+      border-radius: 12px;
+      padding: 16px;
+      width: 80%;
+      max-width: 900px;
+    }
+    .assistant h2 {
+      margin-top: 0;
+    }
+    .messages {
+      height: 200px;
+      overflow-y: auto;
+      background: #0a0e14;
       border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      transition: background 0.3s;
+      padding: 8px;
+      margin-bottom: 12px;
     }
-    iframe {
-      border: none;
-      width: 100%;
-      height: 500px;
+    .input-row {
+      display: flex;
+      gap: 8px;
+    }
+    input, button {
+      padding: 8px;
       border-radius: 6px;
+      border: none;
+      font-family: monospace;
     }
-    footer {
-      text-align: center;
-      margin: 2rem 0;
-      font-size: 0.9rem;
-      color: #666;
-    }
-    a {
-      color: var(--link-color);
-      text-decoration: none;
-    }
-    a:hover {
-      text-decoration: underline;
-    }
+    input { flex: 1; }
+    button { background: #27c93f; color: black; cursor: pointer; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Python Trinket 3 Embed</h1>
-    <button class="toggle-btn" onclick="toggleDarkMode()">🌙 Dark Mode</button>
-  </header>
+  <div class="window">
+    <div class="titlebar">
+      <div class="dot red"></div>
+      <div class="dot yellow"></div>
+      <div class="dot green"></div>
+    </div>
+    <iframe src="https://trinket.io/embed/python3/055c60f8a0"></iframe>
+  </div>
 
-  <main>
-    <p>
-      Below is an embedded Python Trinket project.  
-      You can interact with it directly in your browser.
-    </p>
-
-    <!-- Your Trinket embed -->
-    <iframe 
-      src="https://trinket.io/embed/python3/055c60f8a0"
-      marginwidth="0"
-      marginheight="0"
-      allowfullscreen>
-    </iframe>
-
-    <h2>About Packages</h2>
-    <p>
-      The embedded version doesn’t allow adding packages directly.  
-      To include additional Python libraries, you’ll need to edit your Trinket project on  
-      <a href="https://trinket.io" target="_blank">trinket.io</a> and enable them there.  
-      Once saved, they’ll also work inside this embed.
-    </p>
-  </main>
-
-  <footer>
-    <p>Hosted with ❤️ on <a href="https://pages.github.com/" target="_blank">GitHub Pages</a></p>
-  </footer>
+  <div class="assistant">
+    <h2>AI Assistant</h2>
+    <div class="messages" id="messages"></div>
+    <div class="input-row">
+      <input type="password" id="adminCode" placeholder="Enter admin code first">
+      <input type="text" id="userInput" placeholder="Type a message" disabled>
+      <button id="sendBtn" disabled>Send</button>
+    </div>
+  </div>
 
   <script>
-    // Load theme from localStorage
-    if (localStorage.getItem("theme") === "dark") {
-      document.body.classList.add("dark");
-      document.querySelector(".toggle-btn").textContent = "☀️ Light Mode";
+    const messagesEl = document.getElementById('messages');
+    const adminInput = document.getElementById('adminCode');
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+
+    let unlocked = false;
+
+    adminInput.addEventListener('change', () => {
+      if (adminInput.value.trim() === "AI 27482328") {
+        unlocked = true;
+        adminInput.disabled = true;
+        userInput.disabled = false;
+        sendBtn.disabled = false;
+        alert("✅ AI Assistant unlocked!");
+      } else {
+        alert("❌ Wrong admin code");
+      }
+    });
+
+    function addMessage(sender, text) {
+      const div = document.createElement('div');
+      div.textContent = sender + ": " + text;
+      messagesEl.appendChild(div);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
     }
 
-    function toggleDarkMode() {
-      document.body.classList.toggle("dark");
-      const isDark = document.body.classList.contains("dark");
-      const btn = document.querySelector(".toggle-btn");
-      btn.textContent = isDark ? "☀️ Light Mode" : "🌙 Dark Mode";
-      localStorage.setItem("theme", isDark ? "dark" : "light");
-    }
+    sendBtn.addEventListener('click', async () => {
+      const text = userInput.value.trim();
+      if (!text) return;
+      addMessage("You", text);
+      userInput.value = "";
+
+      // Call backend (replace /chat with your server endpoint)
+      const res = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text })
+      });
+      const data = await res.json();
+      addMessage("AI", data.reply);
+    });
   </script>
 </body>
 </html>
