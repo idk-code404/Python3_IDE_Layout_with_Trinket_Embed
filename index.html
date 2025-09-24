@@ -1,136 +1,286 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Trinket with AI Assistant</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Python Trinket 3 — AI Assistant (demo)</title>
   <style>
-    body {
-      background: #0a0e14;
-      color: #e6e6e6;
-      font-family: monospace;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
+    :root{
+      --bg:#0f1419; --card:#1a1f24; --muted:#7b8794; --accent:#4dabf7; --success:#27c93f;
+      --glass: rgba(255,255,255,0.03);
     }
-    .window {
-      background: #1f2430;
-      border-radius: 12px;
-      width: 80%;
-      max-width: 900px;
-      overflow: hidden;
-      box-shadow: 0 0 20px rgba(0,0,0,0.6);
-      margin-bottom: 20px;
+    body{
+      margin:0; min-height:100vh; display:flex; flex-direction:column; align-items:center;
+      justify-content:center; background:var(--bg); color:#e6e6e6; font-family:Inter, system-ui, sans-serif;
     }
-    .titlebar {
-      background: #191d26;
-      padding: 8px;
-      display: flex;
-      gap: 8px;
-    }
-    .dot {
-      height: 12px; width: 12px; border-radius: 50%;
-    }
-    .red { background: #ff5f56; }
-    .yellow { background: #ffbd2e; }
-    .green { background: #27c93f; }
 
-    iframe { width: 100%; height: 400px; border: none; }
+    /* Editor window (Ayu Dark style) */
+    .editor-window{
+      width: min(920px, 94vw);
+      border-radius:12px; overflow:hidden;
+      background: linear-gradient(180deg, #14181c 0%, #161a1e 100%);
+      border:1px solid rgba(255,255,255,0.03);
+      box-shadow: 0 10px 40px rgba(2,4,8,0.7);
+    }
+    .titlebar{ display:flex; gap:8px; padding:10px 12px; align-items:center; background:#171b20; }
+    .circle{ width:12px; height:12px; border-radius:50%; display:inline-block; }
+    .red{ background:#ff5f56 } .yellow{ background:#ffbd2e } .green{ background:#27c93f }
 
-    .assistant {
-      background: #1f2430;
-      border-radius: 12px;
-      padding: 16px;
-      width: 80%;
-      max-width: 900px;
+    iframe { width:100%; height:560px; border:0; display:block; background:#0b0f12; }
+
+    /* Floating toggle */
+    .toggle {
+      position:fixed; right:18px; bottom:18px; z-index:80;
     }
-    .assistant h2 {
-      margin-top: 0;
+    .toggle button{
+      border:0; background:var(--accent); color:#07101a; font-weight:700; padding:10px 12px;
+      border-radius:12px; cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,0.5);
     }
-    .messages {
-      height: 200px;
-      overflow-y: auto;
-      background: #0a0e14;
-      border-radius: 8px;
-      padding: 8px;
-      margin-bottom: 12px;
+
+    /* Assistant pane */
+    .assistant{
+      position:fixed; right:18px; bottom:72px; width:320px; max-width:92vw; z-index:80;
+      border-radius:10px; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border:1px solid rgba(255,255,255,0.03); box-shadow:0 8px 30px rgba(0,0,0,0.6);
+      padding:12px; display:flex; flex-direction:column; gap:8px; font-size:13px;
+      backdrop-filter: blur(6px);
     }
-    .input-row {
-      display: flex;
-      gap: 8px;
+    .assistant h4{ margin:0; font-size:13px; }
+    .row{ display:flex; gap:8px; align-items:center; }
+    .messages{
+      background: rgba(0,0,0,0.25); padding:8px; border-radius:8px; height:140px; overflow:auto; color:#e6eef8;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace; font-size:13px;
     }
-    input, button {
-      padding: 8px;
-      border-radius: 6px;
-      border: none;
-      font-family: monospace;
+    .msg { margin-bottom:8px; line-height:1.3; }
+    .msg.system{ color:var(--muted); font-style:italic; }
+    .msg.you{ color:#cbd5e1; text-align:right; }
+    .msg.ai{ color:#e6f3ff; }
+    input[type="text"], input[type="password"]{
+      background:var(--glass); border:1px solid rgba(255,255,255,0.03); color:inherit; padding:8px; border-radius:8px; outline:none;
+      font-family: inherit;
     }
-    input { flex: 1; }
-    button { background: #27c93f; color: black; cursor: pointer; }
+    button.small{ background:transparent; border:1px solid rgba(255,255,255,0.04); color:var(--accent); padding:8px 10px; border-radius:8px; cursor:pointer; }
+    button.primary{ background:var(--success); color:#08110b; border:0; padding:8px 10px; border-radius:8px; cursor:pointer; }
+    .status{ font-size:12px; color:var(--muted); }
+    .error{ color:#ff8b8b; font-size:12px; }
+    .hint{ font-size:12px; color:var(--muted); }
   </style>
 </head>
 <body>
-  <div class="window">
+  <div class="editor-window" aria-hidden="false">
     <div class="titlebar">
-      <div class="dot red"></div>
-      <div class="dot yellow"></div>
-      <div class="dot green"></div>
+      <span class="circle red"></span>
+      <span class="circle yellow"></span>
+      <span class="circle green"></span>
+      <div style="flex:1"></div>
+      <div class="hint" style="font-size:12px; color:var(--muted)">Python Trinket 3</div>
     </div>
-    <iframe src="https://trinket.io/embed/python3/055c60f8a0"></iframe>
+    <iframe src="https://trinket.io/embed/python3/055c60f8a0" title="Trinket embed"></iframe>
   </div>
 
-  <div class="assistant">
-    <h2>AI Assistant</h2>
-    <div class="messages" id="messages"></div>
-    <div class="input-row">
-      <input type="password" id="adminCode" placeholder="Enter admin code first">
-      <input type="text" id="userInput" placeholder="Type a message" disabled>
-      <button id="sendBtn" disabled>Send</button>
+  <!-- Toggle -->
+  <div class="toggle" role="toolbar" aria-label="AI assistant controls">
+    <button id="openToggle">💬 AI</button>
+  </div>
+
+  <!-- Assistant (hidden by default) -->
+  <div class="assistant" id="assistant" style="display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <h4>AI Assistant</h4>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button id="setKeyBtn" class="small" title="Set API key (temporary, session only)">Set API Key</button>
+        <button id="hideBtn" class="small">Hide</button>
+      </div>
     </div>
+
+    <div class="row" style="gap:6px">
+      <input id="adminCode" type="password" placeholder="Admin code (required)" style="flex:1" />
+      <button id="unlockBtn" class="small">Unlock</button>
+    </div>
+
+    <div id="statusRow" class="row" style="justify-content:space-between">
+      <div class="status" id="assistantStatus">Locked</div>
+      <div class="status" id="keyStatus">API key: <span id="keyIndicator">none</span></div>
+    </div>
+
+    <div class="messages" id="messages" aria-live="polite"></div>
+
+    <div class="row">
+      <input id="userInput" type="text" placeholder="Say something..." disabled />
+      <button id="sendBtn" class="primary" disabled>Send</button>
+    </div>
+
+    <div id="errorBox" class="error" style="display:none"></div>
+    <div class="hint">Notes: This demo calls OpenAI **directly from your browser** (unsafe for public sites). Use server-side proxy for production.</div>
   </div>
 
   <script>
-    const messagesEl = document.getElementById('messages');
-    const adminInput = document.getElementById('adminCode');
-    const userInput = document.getElementById('userInput');
+    // ---------- small helpers ----------
+    const assistantEl = document.getElementById('assistant');
+    const openToggle = document.getElementById('openToggle');
+    const hideBtn = document.getElementById('hideBtn');
+    const setKeyBtn = document.getElementById('setKeyBtn');
+    const adminCode = document.getElementById('adminCode');
+    const unlockBtn = document.getElementById('unlockBtn');
     const sendBtn = document.getElementById('sendBtn');
+    const userInput = document.getElementById('userInput');
+    const messages = document.getElementById('messages');
+    const assistantStatus = document.getElementById('assistantStatus');
+    const keyIndicator = document.getElementById('keyIndicator');
+    const errorBox = document.getElementById('errorBox');
 
     let unlocked = false;
 
-    adminInput.addEventListener('change', () => {
-      if (adminInput.value.trim() === "AI 27482328") {
-        unlocked = true;
-        adminInput.disabled = true;
-        userInput.disabled = false;
-        sendBtn.disabled = false;
-        alert("✅ AI Assistant unlocked!");
+    function addMessage(cls, text){
+      const d = document.createElement('div');
+      d.className = 'msg ' + cls;
+      d.textContent = text;
+      messages.appendChild(d);
+      messages.scrollTop = messages.scrollHeight;
+    }
+    function setStatus(text){ assistantStatus.textContent = text; }
+    function showError(msg){
+      errorBox.style.display = 'block';
+      errorBox.textContent = msg;
+    }
+    function hideError(){ errorBox.style.display = 'none'; errorBox.textContent = ''; }
+
+    // ------------------- toggle assistant -------------------
+    openToggle.addEventListener('click', () => {
+      assistantEl.style.display = assistantEl.style.display === 'none' ? 'flex' : 'none';
+    });
+    hideBtn.addEventListener('click', () => assistantEl.style.display = 'none');
+
+    // ------------------- API key (session storage) -------------------
+    function getApiKey(){
+      return sessionStorage.getItem('openai_key') || '';
+    }
+    function setApiKey(k){
+      if (!k) sessionStorage.removeItem('openai_key');
+      else sessionStorage.setItem('openai_key', k);
+      keyIndicator.textContent = k ? 'set (session)' : 'none';
+    }
+    // on load reflect current key
+    setApiKey(getApiKey());
+
+    setKeyBtn.addEventListener('click', () => {
+      const current = getApiKey();
+      const promptText = current ? 'Replace API key (session) — leave empty to clear' : 'Paste your OpenAI API key (session only)';
+      const v = prompt(promptText, current || '');
+      if (v === null) return;
+      const trimmed = v.trim();
+      if (trimmed === '') {
+        setApiKey('');
+        addMessage('system', 'API key cleared from session.');
       } else {
-        alert("❌ Wrong admin code");
+        setApiKey(trimmed);
+        addMessage('system', 'API key stored in session for this tab.');
       }
     });
 
-    function addMessage(sender, text) {
-      const div = document.createElement('div');
-      div.textContent = sender + ": " + text;
-      messagesEl.appendChild(div);
-      messagesEl.scrollTop = messagesEl.scrollHeight;
-    }
+    // ------------------- unlock via admin code -------------------
+    unlockBtn.addEventListener('click', () => {
+      const code = adminCode.value.trim();
+      if (!code) { addMessage('system','Enter admin code'); return;}
+      if (code === 'AI 27482328') {
+        unlocked = true;
+        adminCode.value = '';
+        adminCode.disabled = true;
+        unlockBtn.disabled = true;
+        userInput.disabled = false;
+        sendBtn.disabled = false;
+        setStatus('Unlocked');
+        addMessage('system','✅ Assistant unlocked. You can now send messages.');
+      } else {
+        addMessage('system','❌ Wrong admin code.');
+      }
+    });
 
+    // ------------------- send (with robust error handling) -------------------
     sendBtn.addEventListener('click', async () => {
+      hideError();
+      if (!unlocked) { showError('Unlock first with Admin code.'); return; }
       const text = userInput.value.trim();
       if (!text) return;
-      addMessage("You", text);
-      userInput.value = "";
+      addMessage('you', text);
+      userInput.value = '';
+      setStatus('Sending…');
 
-      // Call backend (replace /chat with your server endpoint)
-      const res = await fetch("/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text })
-      });
-      const data = await res.json();
-      addMessage("AI", data.reply);
+      const apiKey = getApiKey();
+      if (!apiKey) {
+        setStatus('No API key');
+        showError('No API key set. Click "Set API Key" to paste a key for session use (unsafe for public sites).');
+        return;
+      }
+
+      // prepare request
+      const payload = {
+        model: 'gpt-4o-mini', // adjust as needed
+        messages: [{ role: 'user', content: text }]
+      };
+
+      try {
+        const res = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + apiKey
+          },
+          body: JSON.stringify(payload)
+        });
+
+        // handle non-2xx responses
+        if (!res.ok) {
+          let bodyText = '';
+          try {
+            const j = await res.json();
+            bodyText = j?.error?.message || JSON.stringify(j);
+          } catch(e){
+            try { bodyText = await res.text(); } catch(e2){ bodyText = res.statusText; }
+          }
+
+          // Helpful error hints
+          const hintMap = {
+            401: '401 Unauthorized — API key missing or invalid. Do NOT expose keys publicly. Use a server proxy in production.',
+            429: '429 Rate limit — you are being rate-limited. Try later.',
+            400: '400 Bad Request — check request format / model name.',
+            500: 'Server error (5xx) — try again later.'
+          };
+          const hint = hintMap[res.status] || '';
+          showError(`HTTP ${res.status}: ${bodyText} ${hint ? ' — ' + hint : ''}`);
+          setStatus('Error');
+          return;
+        }
+
+        const data = await res.json();
+        const reply = data?.choices?.[0]?.message?.content ?? JSON.stringify(data);
+        addMessage('ai', reply);
+        setStatus('Idle');
+
+      } catch (err) {
+        // network-level error (CORS, offline, dns, blocked, etc.)
+        const msg = String(err.message || err);
+        addMessage('system', '❗ Network error: ' + msg);
+        setStatus('Network error');
+
+        // Detect common "Failed to fetch" which often indicates CORS or blocked request
+        if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
+          showError('Network error or CORS blocked. The browser likely blocked the request. If you see a CORS error in DevTools, you must use a backend/proxy — see note below.');
+        } else {
+          showError('Network error: ' + msg);
+        }
+      }
     });
+
+    // allow Enter to send
+    userInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') sendBtn.click();
+    });
+
+    // Add a safety/system message on load
+    addMessage('system', 'Tip: Click "Set API Key" to set a key for this session (unsafe for public sites).');
+    addMessage('system', 'Unlock with the admin code, then send messages.');
+
   </script>
 </body>
 </html>
