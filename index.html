@@ -1,227 +1,192 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Python Trinket with AI Assistant</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Python Trinket with Data Types</title>
   <style>
     body {
       margin: 0;
       font-family: system-ui, sans-serif;
       background: #0f1419;
-      color: #e6e1cf;
+      color: #eaeaea;
+    }
+    header {
+      background: #1c1f26;
+      padding: 10px 15px;
       display: flex;
-      flex-direction: column;
+      justify-content: space-between;
       align-items: center;
-      justify-content: center;
-      min-height: 100vh;
+      border-bottom: 1px solid #333;
     }
-
-    .editor-window {
-      width: 90%;
-      max-width: 900px;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
-      border: 1px solid #1f2429;
-      background: #1a1f24;
+    header h1 {
+      margin: 0;
+      font-size: 16px;
     }
-
-    .title-bar {
-      background: #1f2429;
-      padding: 0.5rem;
+    .toolbar {
       display: flex;
-      align-items: center;
-      gap: 0.5rem;
+      gap: 10px;
     }
-
-    .circle {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      display: inline-block;
-    }
-    .red { background: #ff5f56; }
-    .yellow { background: #ffbd2e; }
-    .green { background: #27c93f; }
-
-    iframe {
-      display: block;
-      width: 100%;
-      height: 520px;
-      border: none;
-    }
-
-    footer {
-      margin-top: 1rem;
-      font-size: 0.85rem;
-      color: #777;
-    }
-    footer a {
-      color: #4dabf7;
-      text-decoration: none;
-    }
-
-    /* AI Assistant styles */
-    #assistant-toggle {
-      position: fixed;
-      bottom: 1rem;
-      right: 1rem;
-      background: #27c93f;
-      color: #fff;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 8px;
+    button {
+      background: #1c1f26;
+      color: #eaeaea;
+      border: 1px solid #444;
+      padding: 5px 10px;
+      border-radius: 6px;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      font-size: 14px;
     }
-
-    #assistant-panel {
-      position: fixed;
-      bottom: 4rem;
-      right: 1rem;
-      width: 300px;
-      max-height: 400px;
-      background: #1a1f24;
-      border: 1px solid #333;
-      border-radius: 10px;
-      display: none;
-      flex-direction: column;
-      overflow: hidden;
+    button:hover {
+      background: #2a2f36;
     }
-
-    #assistant-messages {
-      flex: 1;
-      padding: 0.5rem;
-      overflow-y: auto;
-      font-size: 0.9rem;
+    #editor-container {
+      position: relative;
+      height: 400px;
+      transition: height 0.2s ease;
+      border-bottom: 1px solid #333;
     }
-
-    #assistant-input {
-      display: flex;
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    #resizer {
+      height: 6px;
+      background: #333;
+      cursor: row-resize;
+    }
+    .panel {
+      padding: 15px;
       border-top: 1px solid #333;
     }
-
-    #assistant-input input {
-      flex: 1;
-      padding: 0.5rem;
-      border: none;
-      background: #0f1419;
-      color: #e6e1cf;
+    .hidden {
+      display: none;
     }
-
-    #assistant-input button {
-      background: #27c93f;
-      border: none;
-      padding: 0.5rem;
+    details {
+      background: #1c1f26;
+      padding: 10px;
+      border-radius: 6px;
+      margin-top: 10px;
+      border: 1px solid #333;
+    }
+    details summary {
       cursor: pointer;
-      color: #fff;
+      font-weight: bold;
     }
-
-    .message {
-      margin: 0.25rem 0;
+    pre {
+      background: #0f1419;
+      padding: 10px;
+      overflow-x: auto;
+      border-radius: 6px;
+      font-size: 13px;
+      margin: 10px 0 0 0;
     }
-    .user { color: #4dabf7; }
-    .ai { color: #e6e1cf; }
   </style>
 </head>
 <body>
-  <div class="editor-window">
-    <div class="title-bar">
-      <span class="circle red"></span>
-      <span class="circle yellow"></span>
-      <span class="circle green"></span>
+  <header>
+    <h1>Python Trinket Playground</h1>
+    <div class="toolbar">
+      <button id="fullscreenBtn">Fullscreen</button>
+      <button id="restoreBtn">Restore Size</button>
+      <button id="togglePanelBtn">Hide Data Types</button>
     </div>
-    <iframe 
-      src="https://trinket.io/embed/python3/055c60f8a0"
-      allowfullscreen>
-    </iframe>
+  </header>
+
+  <div id="editor-container">
+    <iframe id="trinketFrame" src="https://trinket.io/embed/python3/055c60f8a0"></iframe>
   </div>
+  <div id="resizer"></div>
 
-  <footer>
-    <p>Hosted with ❤️ on <a href="https://pages.github.com/" target="_blank">GitHub Pages</a></p>
-  </footer>
-
-  <!-- AI Assistant -->
-  <button id="assistant-toggle">AI</button>
-  <div id="assistant-panel">
-    <div id="assistant-messages"></div>
-    <div id="assistant-input">
-      <input type="text" id="assistant-text" placeholder="Type a message..." />
-      <button id="assistant-send">➤</button>
-    </div>
+  <div id="dataTypesPanel" class="panel">
+    <h2>Python Data Types</h2>
+    <details>
+      <summary>Numbers (int, float, complex)</summary>
+      <pre>x = 10        # int
+y = 3.14      # float
+z = 1 + 2j    # complex</pre>
+    </details>
+    <details>
+      <summary>Strings (str)</summary>
+      <pre>text = "Hello, World!"
+print(text.lower())
+print(text[0:5])</pre>
+    </details>
+    <details>
+      <summary>Lists</summary>
+      <pre>fruits = ["apple", "banana", "cherry"]
+fruits.append("orange")
+print(fruits[1])</pre>
+    </details>
+    <details>
+      <summary>Tuples</summary>
+      <pre>coordinates = (10, 20)
+print(coordinates[0])</pre>
+    </details>
+    <details>
+      <summary>Dictionaries</summary>
+      <pre>person = {"name": "Alice", "age": 25}
+print(person["name"])</pre>
+    </details>
+    <details>
+      <summary>Sets</summary>
+      <pre>unique_numbers = {1, 2, 3, 3}
+print(unique_numbers)  # {1, 2, 3}</pre>
+    </details>
+    <details>
+      <summary>Boolean</summary>
+      <pre>is_active = True
+print(is_active)</pre>
+    </details>
+    <details>
+      <summary>NoneType</summary>
+      <pre>x = None
+print(x)</pre>
+    </details>
   </div>
 
   <script>
-    let apiKey = null; // Only stored in memory
-    const ADMIN_CODE = "AI 27482328";
+    // Resizable Editor
+    const editorContainer = document.getElementById('editor-container');
+    const resizer = document.getElementById('resizer');
+    let isResizing = false;
 
-    const toggleBtn = document.getElementById("assistant-toggle");
-    const panel = document.getElementById("assistant-panel");
-    const messages = document.getElementById("assistant-messages");
-    const input = document.getElementById("assistant-text");
-    const sendBtn = document.getElementById("assistant-send");
-
-    toggleBtn.addEventListener("click", async () => {
-      if (!apiKey) {
-        const code = prompt("Enter admin code:");
-        if (code !== ADMIN_CODE) {
-          alert("Invalid code.");
-          return;
-        }
-        apiKey = prompt("Enter your OpenAI API key:");
-        if (!apiKey) {
-          alert("API key required.");
-          return;
-        }
-      }
-      panel.style.display = panel.style.display === "flex" ? "none" : "flex";
+    resizer.addEventListener('mousedown', e => {
+      isResizing = true;
+      document.body.style.cursor = 'row-resize';
+    });
+    window.addEventListener('mousemove', e => {
+      if (!isResizing) return;
+      editorContainer.style.height = e.clientY - editorContainer.getBoundingClientRect().top + 'px';
+    });
+    window.addEventListener('mouseup', () => {
+      isResizing = false;
+      document.body.style.cursor = 'default';
     });
 
-    async function sendMessage() {
-      const userText = input.value.trim();
-      if (!userText) return;
-      appendMessage("user", userText);
-      input.value = "";
-
-      try {
-        const response = await fetch("https://api.openai.com/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${apiKey}`
-          },
-          body: JSON.stringify({
-            model: "gpt-4o-mini",
-            messages: [{ role: "user", content: userText }]
-          })
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          appendMessage("ai", "Error: " + errorText);
-          return;
-        }
-
-        const data = await response.json();
-        const aiReply = data.choices[0].message.content;
-        appendMessage("ai", aiReply);
-      } catch (err) {
-        appendMessage("ai", "Request failed: " + err.message);
+    // Fullscreen toggle
+    document.getElementById('fullscreenBtn').addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        editorContainer.requestFullscreen();
+      } else {
+        document.exitFullscreen();
       }
-    }
+    });
 
-    function appendMessage(sender, text) {
-      const div = document.createElement("div");
-      div.className = "message " + sender;
-      div.textContent = (sender === "user" ? "You: " : "AI: ") + text;
-      messages.appendChild(div);
-      messages.scrollTop = messages.scrollHeight;
-    }
+    // Restore size
+    document.getElementById('restoreBtn').addEventListener('click', () => {
+      editorContainer.style.height = '400px';
+    });
 
-    sendBtn.addEventListener("click", sendMessage);
-    input.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") sendMessage();
+    // Hide / Show Python Data Types
+    const togglePanelBtn = document.getElementById('togglePanelBtn');
+    const dataTypesPanel = document.getElementById('dataTypesPanel');
+    let panelVisible = true;
+
+    togglePanelBtn.addEventListener('click', () => {
+      panelVisible = !panelVisible;
+      dataTypesPanel.classList.toggle('hidden');
+      togglePanelBtn.textContent = panelVisible ? "Hide Data Types" : "Show Data Types";
     });
   </script>
 </body>
