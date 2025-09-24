@@ -1,1 +1,1 @@
-python-trinket-3-with-AI-assistant
+python-trinket-3-but-for-me
