@@ -1,1 +1,1 @@
-# python-trinket-3-but-with-packages
+python-trinket-3-with-AI-assistant
