@@ -1,104 +1,172 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Python Trinket with Data Types</title>
+  <meta charset="UTF-8">
+  <title>Trinket Embed - IDE Layout</title>
   <style>
     body {
       margin: 0;
-      font-family: system-ui, sans-serif;
+      font-family: "Fira Code", monospace;
       background: #0f1419;
-      color: #eaeaea;
-    }
-    header {
-      background: #1c1f26;
-      padding: 10px 15px;
+      color: #e6e6e6;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #333;
+      height: 100vh;
+      overflow: hidden;
     }
-    header h1 {
-      margin: 0;
+
+    /* Sidebar */
+    .sidebar {
+      background: #1a1f24;
+      border-right: 1px solid #2a2f36;
+      width: 250px;
+      min-width: 250px;
+      max-width: 250px;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar.collapsed {
+      transform: translateX(-100%);
+    }
+
+    .sidebar h2 {
+      margin-top: 0;
       font-size: 16px;
+      text-align: center;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #2a2f36;
     }
-    .toolbar {
-      display: flex;
-      gap: 10px;
-    }
-    button {
-      background: #1c1f26;
-      color: #eaeaea;
-      border: 1px solid #444;
-      padding: 5px 10px;
+
+    .sidebar details {
+      background: #20262c;
+      padding: 8px;
       border-radius: 6px;
+      margin: 8px 0;
+      border: 1px solid #2a2f36;
+    }
+
+    .sidebar summary {
       cursor: pointer;
-      font-size: 14px;
+      font-weight: bold;
     }
-    button:hover {
-      background: #2a2f36;
+
+    .sidebar pre {
+      background: #0f1419;
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 13px;
+      overflow-x: auto;
+      margin: 6px 0 0 0;
     }
-    #editor-container {
+
+    /* Main area */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 15px;
+      overflow: hidden;
+      transition: margin-left 0.3s ease;
+    }
+
+    .window {
+      background: #1a1f24;
+      border: 1px solid #2a2f36;
+      border-radius: 8px;
+      width: 100%;
+      height: 100%;
+      min-height: 300px;
+      min-width: 400px;
+      display: flex;
+      flex-direction: column;
       position: relative;
-      height: 400px;
-      transition: height 0.2s ease;
-      border-bottom: 1px solid #333;
     }
+
+    .window-header {
+      background: #20262c;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+    }
+
+    .window-header .buttons {
+      display: flex;
+      gap: 6px;
+    }
+
+    .window-header .button {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .red { background: #ff5f56; }
+    .yellow { background: #ffbd2e; }
+    .green { background: #27c93f; }
+
+    .window-content {
+      flex: 1;
+      overflow: hidden;
+    }
+
     iframe {
       width: 100%;
       height: 100%;
       border: none;
     }
-    #resizer {
-      height: 6px;
-      background: #333;
-      cursor: row-resize;
+
+    .control-buttons {
+      display: flex;
+      gap: 5px;
     }
-    .panel {
-      padding: 15px;
-      border-top: 1px solid #333;
-    }
-    .hidden {
-      display: none;
-    }
-    details {
-      background: #1c1f26;
-      padding: 10px;
-      border-radius: 6px;
-      margin-top: 10px;
-      border: 1px solid #333;
-    }
-    details summary {
+
+    .control-buttons button {
+      background: #2a2f36;
+      border: none;
+      color: #e6e6e6;
+      padding: 4px 8px;
+      font-size: 12px;
+      border-radius: 4px;
       cursor: pointer;
-      font-weight: bold;
     }
-    pre {
-      background: #0f1419;
-      padding: 10px;
-      overflow-x: auto;
+
+    .control-buttons button:hover {
+      background: #3a4049;
+    }
+
+    /* Sidebar toggle button */
+    #toggleSidebar {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+      background: #2a2f36;
+      border: none;
+      color: #e6e6e6;
+      padding: 6px 10px;
       border-radius: 6px;
-      font-size: 13px;
-      margin: 10px 0 0 0;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #toggleSidebar:hover {
+      background: #3a4049;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Python Trinket Playground</h1>
-    <div class="toolbar">
-      <button id="fullscreenBtn">Fullscreen</button>
-      <button id="restoreBtn">Restore Size</button>
-      <button id="togglePanelBtn">Hide Data Types</button>
-    </div>
-  </header>
-
-  <div id="editor-container">
-    <iframe id="trinketFrame" src="https://trinket.io/embed/python3/055c60f8a0"></iframe>
-  </div>
-  <div id="resizer"></div>
-
-  <div id="dataTypesPanel" class="panel">
+  <!-- Sidebar with Data Types -->
+  <aside class="sidebar" id="sidebar">
     <h2>Python Data Types</h2>
     <details>
       <summary>Numbers (int, float, complex)</summary>
@@ -143,50 +211,52 @@ print(is_active)</pre>
       <pre>x = None
 print(x)</pre>
     </details>
-  </div>
+  </aside>
+
+  <!-- Main editor window -->
+  <main class="main">
+    <button id="toggleSidebar">☰ Sidebar</button>
+    <div class="window" id="editorWindow">
+      <div class="window-header">
+        <div class="buttons">
+          <div class="button red"></div>
+          <div class="button yellow"></div>
+          <div class="button green"></div>
+        </div>
+        <div class="control-buttons">
+          <button id="fullscreenBtn">Fullscreen</button>
+          <button id="restoreBtn">Restore Size</button>
+        </div>
+      </div>
+      <div class="window-content">
+        <iframe src="https://trinket.io/embed/python3/055c60f8a0" allowfullscreen></iframe>
+      </div>
+    </div>
+  </main>
 
   <script>
-    // Resizable Editor
-    const editorContainer = document.getElementById('editor-container');
-    const resizer = document.getElementById('resizer');
-    let isResizing = false;
+    const editorWindow = document.getElementById('editorWindow');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const restoreBtn = document.getElementById('restoreBtn');
+    const sidebar = document.getElementById('sidebar');
+    const toggleSidebar = document.getElementById('toggleSidebar');
 
-    resizer.addEventListener('mousedown', e => {
-      isResizing = true;
-      document.body.style.cursor = 'row-resize';
-    });
-    window.addEventListener('mousemove', e => {
-      if (!isResizing) return;
-      editorContainer.style.height = e.clientY - editorContainer.getBoundingClientRect().top + 'px';
-    });
-    window.addEventListener('mouseup', () => {
-      isResizing = false;
-      document.body.style.cursor = 'default';
-    });
-
-    // Fullscreen toggle
-    document.getElementById('fullscreenBtn').addEventListener('click', () => {
+    fullscreenBtn.addEventListener('click', () => {
       if (!document.fullscreenElement) {
-        editorContainer.requestFullscreen();
+        editorWindow.requestFullscreen();
       } else {
         document.exitFullscreen();
       }
     });
 
-    // Restore size
-    document.getElementById('restoreBtn').addEventListener('click', () => {
-      editorContainer.style.height = '400px';
+    restoreBtn.addEventListener('click', () => {
+      editorWindow.style.width = "100%";
+      editorWindow.style.height = "100%";
     });
 
-    // Hide / Show Python Data Types
-    const togglePanelBtn = document.getElementById('togglePanelBtn');
-    const dataTypesPanel = document.getElementById('dataTypesPanel');
-    let panelVisible = true;
-
-    togglePanelBtn.addEventListener('click', () => {
-      panelVisible = !panelVisible;
-      dataTypesPanel.classList.toggle('hidden');
-      togglePanelBtn.textContent = panelVisible ? "Hide Data Types" : "Show Data Types";
+    toggleSidebar.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+      toggleSidebar.textContent = sidebar.classList.contains('collapsed') ? "☰ Show" : "☰ Hide";
     });
   </script>
 </body>
