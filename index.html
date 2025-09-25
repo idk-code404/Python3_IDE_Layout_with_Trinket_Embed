@@ -25,7 +25,9 @@
       display: flex;
       flex-direction: column;
       overflow-y: auto;
-      transition: transform 0.3s ease;
+      transition: transform 0.35s ease-in-out;
+      position: relative;
+      z-index: 1000;
     }
 
     .sidebar.collapsed {
@@ -35,9 +37,11 @@
     .sidebar h2 {
       margin-top: 0;
       font-size: 16px;
-      text-align: center;
       padding-bottom: 8px;
       border-bottom: 1px solid #2a2f36;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .sidebar details {
@@ -70,7 +74,7 @@
       align-items: center;
       padding: 15px;
       overflow: hidden;
-      transition: margin-left 0.3s ease;
+      transition: margin-left 0.35s ease-in-out;
     }
 
     .window {
@@ -142,32 +146,54 @@
 
     /* Sidebar toggle button */
     #toggleSidebar {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      z-index: 1000;
       background: #2a2f36;
       border: none;
       color: #e6e6e6;
-      padding: 6px 10px;
-      border-radius: 6px;
+      padding: 4px 8px;
+      border-radius: 4px;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 12px;
       font-weight: bold;
       display: flex;
       align-items: center;
       gap: 6px;
+      transition: background 0.2s;
+    }
+    #toggleSidebar:hover {
+      background: #3a4049;
     }
 
-    #toggleSidebar:hover {
+    /* Floating Show button */
+    #showSidebar {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 2001;
+      background: #2a2f36;
+      border: none;
+      color: #e6e6e6;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      display: none;
+    }
+    #showSidebar:hover {
       background: #3a4049;
     }
   </style>
 </head>
 <body>
+  <!-- Floating button (only visible when sidebar is hidden) -->
+  <button id="showSidebar">☰ Show</button>
+
   <!-- Sidebar with Data Types -->
   <aside class="sidebar" id="sidebar">
-    <h2>Python Data Types</h2>
+    <h2>
+      Python Data Types
+      <button id="toggleSidebar">☰ Hide</button>
+    </h2>
     <details>
       <summary>Numbers (int, float, complex)</summary>
       <pre>x = 10        # int
@@ -215,7 +241,6 @@ print(x)</pre>
 
   <!-- Main editor window -->
   <main class="main">
-    <button id="toggleSidebar">☰ Sidebar</button>
     <div class="window" id="editorWindow">
       <div class="window-header">
         <div class="buttons">
@@ -240,6 +265,7 @@ print(x)</pre>
     const restoreBtn = document.getElementById('restoreBtn');
     const sidebar = document.getElementById('sidebar');
     const toggleSidebar = document.getElementById('toggleSidebar');
+    const showSidebar = document.getElementById('showSidebar');
 
     fullscreenBtn.addEventListener('click', () => {
       if (!document.fullscreenElement) {
@@ -255,8 +281,13 @@ print(x)</pre>
     });
 
     toggleSidebar.addEventListener('click', () => {
-      sidebar.classList.toggle('collapsed');
-      toggleSidebar.textContent = sidebar.classList.contains('collapsed') ? "☰ Show" : "☰ Hide";
+      sidebar.classList.add('collapsed');
+      showSidebar.style.display = 'block';
+    });
+
+    showSidebar.addEventListener('click', () => {
+      sidebar.classList.remove('collapsed');
+      showSidebar.style.display = 'none';
     });
   </script>
 </body>
