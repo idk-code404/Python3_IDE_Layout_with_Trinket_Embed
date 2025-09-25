@@ -1,6 +1,8 @@
 Python IDE Layout with Trinket Embed
 A sleek, dark-themed IDE-style interface that embeds a Trinket Python editor alongside a reference sidebar for Python data types.
 
+https://idk-code404.github.io/Python3-IDE-for-me/
+
 Features
 Embedded Python Editor: Integrated Trinket Python environment for writing and running code directly in the browser
 
