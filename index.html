@@ -261,7 +261,6 @@ print(x)</pre>
   <script>
     const editorWindow = document.getElementById('editorWindow');
     const fullscreenBtn = document.getElementById('fullscreenBtn');
-    const restoreBtn = document.getElementById('restoreBtn');
     const sidebar = document.getElementById('sidebar');
     const toggleSidebar = document.getElementById('toggleSidebar');
     const showSidebar = document.getElementById('showSidebar');
@@ -272,11 +271,6 @@ print(x)</pre>
       } else {
         document.exitFullscreen();
       }
-    });
-
-    restoreBtn.addEventListener('click', () => {
-      editorWindow.style.width = "100%";
-      editorWindow.style.height = "100%";
     });
 
     toggleSidebar.addEventListener('click', () => {
